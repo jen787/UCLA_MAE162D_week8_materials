@@ -1,1 +1,2 @@
 ./YOLOv4/weights/yolov4.weights
+*.weights
