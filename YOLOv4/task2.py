@@ -4,6 +4,7 @@ import subprocess
 import os
 from yolo_utils import *
 from picamera2 import Picamera2
+import numpy as npsudo
 
 # video file names
 temp_video = "temp_recording.avi"
@@ -55,6 +56,52 @@ try:
 
         for i in range(len(bounding_boxes)):
             print(f"[Debug] Detected: Class={class_objects[i]}, Confidence={confidence_probs[i]:.2f}")
+            # TODO: change the class number to the class number of traffic light in obj.names file
+            if class_objects[i] == 3:
+                # TODO: detect the color of the traffic light (red) by merging task 1
+                # step 1: crop the bounding box area from the frame
+                x,y,w,h =bounding_boxes[i]
+
+                print(x, y, w, h)
+
+                crop = frame[x:x+int(w), y:y+int(h)]
+                if crop.size == 0:
+                    print("crop size = 0")
+                    continue
+                # step 2: convert the cropped area to HSV color space
+                hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                # step 3: create a mask for red color
+                #red
+                lower_red = np.array([0, 100, 0])
+                upper_red = np.array([10, 255, 255])
+                mask_red = cv2.inRange(hsv, lower_red, upper_red)
+                #green
+                lower_g = np.array([36, 50, 70])
+                upper_g = np.array([89, 255, 255])
+                mask_g = cv2.inRange(hsv, lower_g, upper_g)
+                #yellow
+                lower_y = np.array([20, 100, 100])
+                upper_y = np.array([30, 255, 255])
+                mask_y = cv2.inRange(hsv, lower_y, upper_y)
+                # step 4: check if there are enough contour areas in the mask to confirm the traffic light is red
+                contours_red, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                red_area = sum(cv2.contourArea(c) for c in contours_red if cv2.contourArea(c) > 500)
+                contours_g, _ = cv2.findContours(mask_g, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                g_area = sum(cv2.contourArea(c) for c in contours_g if cv2.contourArea(c) > 500)
+                contours_y, _ = cv2.findContours(mask_y, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                y_area = sum(cv2.contourArea(c) for c in contours_y if cv2.contourArea(c) > 500)
+                
+                print(y_area)
+                # step 5: print a message if the traffic light is red (e.g., "Red light detected!")
+                if red_area > 0:
+                    print("Red light detected!")
+                elif g_area > 0:
+                    print("Green light detected!")
+                elif y_area > 0:
+                    print("Yellow light detected!")
+                else:
+                    print("red:", red_area, "green:", g_area, "yellow:", y_area,)
+                pass
 
         indices = nms_bbox(
             bounding_boxes,

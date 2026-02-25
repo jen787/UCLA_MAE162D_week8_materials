@@ -3,7 +3,7 @@ import numpy as np
 import subprocess
 import os
 
-input_video = "example3_green.mp4"
+input_video = "example3_red.mp4"
 temp_video    = "temp_result.avi"
 output_video   = "result.mp4"
 
@@ -13,9 +13,11 @@ cap = cv2.VideoCapture(input_video)
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(temp_video, fourcc, 30.0, (640, 480))
 
-# define green color range in HSV
-lower_green = np.array([30, 150, 50])
-upper_green = np.array([85, 255, 255])
+# define red color range in HSV
+# TODO: adjust the values if needed for different shades of red
+lower_red = np.array([0, 100, 0])
+upper_red = np.array([10, 255, 255])
+
 
 print("[MAIN] Starting video processing...")
 while True:
@@ -25,14 +27,14 @@ while True:
 
     frame = cv2.resize(frame, (640, 480))
 
-    # convert to HSV and create a mask for green objects
+    # convert to HSV and create a mask for red objects
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    mask = cv2.inRange(hsv, lower_red, upper_red)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for contour in contours:
-        if cv2.contourArea(contour) > 500:
+        if cv2.contourArea(contour) > 2000:
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
 

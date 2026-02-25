@@ -4,7 +4,6 @@ import numpy as np
 # read the image
 img = cv2.imread("example1.jpg")
 
-# resize the image
 img = cv2.resize(img, (500, 500))
 
 # create a motion blur kernel
@@ -21,11 +20,7 @@ psf = cv2.ellipse(psf,
 psf /= psf[:,:,0].sum()
 
 # apply the kernel to the image
-blurred = cv2.filter2D(img, -1, psf)
+result = cv2.filter2D(img, -1, psf)
 
-# concatenate the original and blurred images along the horizontal axis
-stacked_image = np.vstack((img, blurred))
-
-# show the original and blurred images in a single window
-cv2.imshow("Images", stacked_image)
-cv2.waitKey(0)
+cv2.imwrite("result.jpg", result)
+print("[MAIN] Image saved successfully!")
